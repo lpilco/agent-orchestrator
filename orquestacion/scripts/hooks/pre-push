@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# Barrera de push para el trabajo entre agentes sin avisos de permiso.
+# Se activa con: git config core.hooksPath .agents/orquestacion/scripts/hooks
+#  - Nadie empuja directo a las ramas protegidas (ORQ_RAMAS_PROTEGIDAS en .agents/proyecto.conf):
+#    se llega a ellas por PR.
+#  - Un agente con ORQ_ROL distinto de «orquestador» (lo pone iniciar_agente.sh) no empuja nunca.
+
+rol="${ORQ_ROL:-}"
+if [ -n "$rol" ] && [ "$rol" != "orquestador" ]; then
+  echo "✘ pre-push: el rol '$rol' no hace push. Deja tus commits locales y escribe el reporte." >&2
+  exit 1
+fi
+
+ORQ_RAMAS_PROTEGIDAS="dev main"
+config="$(git rev-parse --show-toplevel 2>/dev/null)/.agents/proyecto.conf"
+# shellcheck disable=SC1090
+[ -f "$config" ] && . "$config"
+
+while read -r _local_ref _local_sha remote_ref _remote_sha; do
+  for rama in $ORQ_RAMAS_PROTEGIDAS; do
+    if [ "$remote_ref" = "refs/heads/$rama" ]; then
+      echo "✘ pre-push: push directo a $rama bloqueado. Usa una rama y un PR." >&2
+      exit 1
+    fi
+  done
+done
+
+exit 0
