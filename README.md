@@ -99,3 +99,7 @@ Este repositorio es **público**. No subas correos, nombres de clientes, rutas d
 ### Cambios al protocolo
 
 Edita `orquestacion/` aquí y abre un PR; nunca dentro de un proyecto, porque la siguiente actualización lo pisaría.
+
+## Licencia
+
+[MIT](LICENSE).
